@@ -4,12 +4,17 @@ import type { ZodObject, ZodRawShape } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { generatedTools } from "./generated/tools.js";
 import { createHandler } from "./handler.js";
+import { observerTools } from "./observerTools.js";
 import { createLogger } from "./utils/logger.js";
 
 const logger = createLogger("MCP-Server");
 
 const JSON_SCHEMA_2020_12 = "https://json-schema.org/draft/2020-12/schema";
 const LARGE_TOOLSET_WARNING_THRESHOLD = 150;
+const allTools = [...generatedTools, ...observerTools];
+if (new Set(allTools.map((tool) => tool.name)).size !== allTools.length) {
+  throw new Error("Duplicate Dokploy MCP tool name");
+}
 
 const TOOL_PRESETS = {
   all: null,
@@ -57,15 +62,15 @@ function getEnabledTools() {
 
   let filtered =
     selectedTags.size > 0
-      ? generatedTools.filter((tool) => selectedTags.has(tool.tag.toLowerCase()))
-      : generatedTools;
+      ? allTools.filter((tool) => selectedTags.has(tool.tag.toLowerCase()))
+      : allTools;
 
   if (disabledTags.size > 0) {
     filtered = filtered.filter((tool) => !disabledTags.has(tool.tag.toLowerCase()));
   }
 
   const context = {
-    total: generatedTools.length,
+    total: allTools.length,
     loaded: filtered.length,
     source,
     preset,

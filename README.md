@@ -4,6 +4,11 @@
 
 Dokploy MCP Server exposes **all Dokploy API endpoints** as tools consumable via the Model Context Protocol (MCP). It allows MCP-compatible clients (e.g., AI models, other applications) to interact with your Dokploy server programmatically.
 
+The `masonjames/mcp` fork also exposes the normalized
+`application-immutableReleaseSnapshot` and `application-runtimeStatus` tools
+used by the built-in Dokploy observer role. The server remains the authority:
+that role denies every other protected query and every protected mutation.
+
 With **508 tools** across **49 categories**, this server provides complete coverage of the Dokploy API — from project and application management to databases, notifications, SSO, Docker, backups, and more.
 
 ## Getting Started

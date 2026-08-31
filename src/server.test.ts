@@ -12,6 +12,7 @@ vi.mock("./utils/apiClient.js", () => ({
 
 const { createServer } = await import("./server.js");
 const { generatedTools } = await import("./generated/tools.js");
+const { observerTools } = await import("./observerTools.js");
 
 function countByTags(tags: string[]): number {
   const wanted = new Set(tags.map((tag) => tag.toLowerCase()));
@@ -45,7 +46,22 @@ describe("MCP server tools/list", () => {
 
   it("returns all tools by default", async () => {
     const tools = await getToolList();
-    expect(tools).toHaveLength(generatedTools.length);
+    expect(tools).toHaveLength(generatedTools.length + observerTools.length);
+    expect(tools.map((tool) => tool.name)).toEqual(
+      expect.arrayContaining(["application-immutableReleaseSnapshot", "application-runtimeStatus"]),
+    );
+  });
+
+  it("can expose only the normalized release observer tools", async () => {
+    process.env.DOKPLOY_ENABLED_TAGS = "releaseObserver";
+
+    const tools = await getToolList();
+
+    expect(tools.map((tool) => tool.name)).toEqual([
+      "application-immutableReleaseSnapshot",
+      "application-runtimeStatus",
+    ]);
+    expect(tools.every((tool) => tool.annotations?.readOnlyHint)).toBe(true);
   });
 
   it("supports DOKPLOY_TOOL_PRESET=minimal for clients sensitive to large toolsets", async () => {
@@ -98,7 +114,7 @@ describe("MCP server tools/list", () => {
 
     const tools = await getToolList();
 
-    expect(tools).toHaveLength(generatedTools.length);
+    expect(tools).toHaveLength(generatedTools.length + observerTools.length);
   });
 
   it("every tool inputSchema has $schema set to draft 2020-12", async () => {
