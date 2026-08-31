@@ -27,8 +27,10 @@ COPY --from=builder /app/build ./build
 # Copy package.json and lockfile for production install
 COPY package.json pnpm-lock.yaml .npmrc ./
 
-# Install only production dependencies
-RUN pnpm install --prod --frozen-lockfile --ignore-scripts
+# Install production dependencies, then remove package managers unused at runtime.
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts \
+  && rm -rf /root/.cache/node/corepack /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+  && rm -f /usr/local/bin/corepack /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/pnpm /usr/local/bin/pnpx
 
 # Expose port 3000 (internal container port)
 EXPOSE 3000
